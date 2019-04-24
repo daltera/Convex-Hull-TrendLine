@@ -23,10 +23,6 @@ class point{
       double getY(){return y;}
       void setX(int _x){x = _x;}
       void setY(int _y){y = _y;}
-      point& operator=(const point& p)
-      {
-         return 
-      }
 };
 
 class axes : public point{
@@ -44,13 +40,6 @@ class axes : public point{
       datetime getDT(){return dtx;}
       axes(axes &p) : point(p.getX(), p.getY())
       {
-         dtx = p.getDT();
-      }
-      
-      void operator=(axes &p)
-      {
-         this.setX(p.getX());
-         this.setY(p.getY());
          dtx = p.getDT();
       }
 };
@@ -122,6 +111,8 @@ void convhull(axes &a, axes &b, axes &list[], int direction)
 {
    //draw line between 2 farthest points
    drawTrendline(a,b);
+   axes uplist[];
+   axes downlist[];
    if (ArraySize(list) == 0)
    {
       return;
@@ -129,8 +120,6 @@ void convhull(axes &a, axes &b, axes &list[], int direction)
    else
    {
    //group sets of lines on up or down half
-      axes uplist[];
-      axes downlist[];
       double curGrad = getGradient(a,b);
       int len = ArraySize(list);
       for (int i = 0; i < len; i++)
@@ -143,11 +132,10 @@ void convhull(axes &a, axes &b, axes &list[], int direction)
             else if (getGradient(a,list[i]) < curGrad)
             {
                ArrayResize(downlist, i+1);
-               downlist[i] = downlist[i];
+               downlist[i] = list[i];
             }
-         }
       }
-   
+   }
    
    //find farthest point from line from list of splitted points
       axes farthdown = findFarthestPoint(a,b,downlist);
