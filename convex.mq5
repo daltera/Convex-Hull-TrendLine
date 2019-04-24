@@ -9,7 +9,8 @@
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
-class point{
+class point
+{
    private:
       int x;
       double y;
@@ -25,7 +26,8 @@ class point{
       void setY(int _y){y = _y;}
 };
 
-class axes : public point{
+class axes : public point
+{
    private:
       datetime dtx;
    public:
@@ -43,6 +45,7 @@ class axes : public point{
          dtx = p.getDT();
       }
 };
+
 double getDistAx(axes &a, axes &b, axes &c)
 {
    return (0.5)*MathAbs((a.getX()-c.getX())*(b.getY()-a.getY())-(a.getX()-b.getX())*(c.getY()-a.getY()));
