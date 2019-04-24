@@ -110,10 +110,17 @@ double getGradient(axes &a, axes &b)
    return (b.getY()-a.getY())/(b.getX()-a.getX());
 }
 
+bool isOnSmex(axes &a, axes &b)
+{
+   return a.getX() == b.getX();
+}
+
 void convhull(axes &a, axes &b, axes &list[], int direction)
 {
    //draw line between 2 farthest points
-   drawTrendline(a,b);
+   //drawTrendline(a,b);
+   Alert(a.getX());
+   Alert(b.getX());
    axes uplist[];
    axes downlist[];
    if (ArraySize(list) == 0)
@@ -125,24 +132,57 @@ void convhull(axes &a, axes &b, axes &list[], int direction)
    //group sets of lines on up or down half
       double curGrad = getGradient(a,b);
       int len = ArraySize(list);
+      int upC = 0;
+      int doC = 0;
       for (int i = 0; i < len; i++)
       {
+         if (!isOnSmex(a,list[i]))
+         {
             if (getGradient(a,list[i]) > curGrad)
             {
-               ArrayResize(uplist, i+1);
-               uplist[i] = list[i];
+               ArrayResize(uplist, upC+1);
+               uplist[upC] = list[i];
+               upC++;
             }
             else if (getGradient(a,list[i]) < curGrad)
             {
-               ArrayResize(downlist, i+1);
-               downlist[i] = list[i];
+               ArrayResize(downlist, doC+1);
+               downlist[doC] = list[i];
+               doC++;
             }
+         }
       }
-   }
+   
    
    //find farthest point from line from list of splitted points
-      axes farthdown = findFarthestPoint(a,b,downlist);
-      axes farthup = findFarthestPoint(a,b,uplist);
+      bool flagup = false;
+      bool flagdown = false;
+      axes farthdown;
+      axes farthup;
+      if (ArraySize(downlist) != 0)
+      {
+         farthdown = findFarthestPoint(a,b,downlist);
+         flagdown = true;
+      }
+      
+      if (ArraySize(uplist) != 0)
+      {
+         farthup = findFarthestPoint(a,b,uplist);
+         flagup = true;
+      }
+      
+      if (flagup && flagdown)
+      {
+         direction = 0;
+      }
+      else if (flagup && !flagdown)
+      {
+         direction = 1;
+      }
+      else if (flagdown && !flagup)
+      {
+         direction = 2;
+      }
    
    //connect ends with farthest points
    //recurse
@@ -163,6 +203,7 @@ void convhull(axes &a, axes &b, axes &list[], int direction)
          convhull(a, farthdown, downlist, 2);
          convhull(farthdown, b, downlist, 2);
       }
+    }
 }
 int OnInit()
   {
@@ -203,7 +244,7 @@ void OnTick()
       listofaxh[i] = temp;
       listofaxl[i] = temp1;
    }
-   convhull(listofaxh[0], listofaxh[ArraySize(listofaxh)], listofaxh, 0);
-   convhull(listofaxl[0], listofaxl[ArraySize(listofaxl)], listofaxl, 0);
+   convhull(listofaxh[0], listofaxh[ArraySize(listofaxh)-1], listofaxh, 0);
+   convhull(listofaxl[0], listofaxl[ArraySize(listofaxl)-1], listofaxl, 0);
   }
 //+------------------------------------------------------------------+
