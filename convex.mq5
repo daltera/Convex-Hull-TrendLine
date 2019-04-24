@@ -94,11 +94,11 @@ void drawTrendline(axes &a, axes &b)
 {
    if (ObjectCreate(0, _Symbol, OBJ_TREND, 0, a.getDT(), a.getY(), b.getDT(), b.getY()))
    {
-      Alert("Invalid object creation!");
+      Alert("Drawn line");  
    }
    else
    {
-      Alert("Drawn line");
+      Alert("Invalid object creation!");
    }
 }
 
