@@ -44,7 +44,106 @@ class axes : public point
       {
          dtx = p.getDT();
       }
+      bool operator==(axes &p)
+      {
+         return getX() == p.getX() && getY() == p.getY()&& getDT() == p.getDT();  
+      }
+      
+      bool isNotDefined()
+      {
+         return this.getX() == 0 && this.getY() == 0;
+      }
 };
+class pairOfAx
+{
+   private:
+      axes a;
+      axes b;
+   public:
+      pairOfAx()
+      {
+      }
+      pairOfAx(axes &_a, axes & _b)
+      {
+         a = _a;
+         b = _b;
+      }
+      
+      pairOfAx(pairOfAx &p)
+      {
+         a = p.getA();
+         b = p.getB();
+      }
+      axes getA()
+      {
+         return a;
+      }
+      axes getB()
+      {
+         return b;
+      }
+      
+      bool operator==(pairOfAx &p)
+      {
+         return a == p.getA() && b == p.getB();
+      }
+};
+
+class SetOfAx
+{
+   private:
+      pairOfAx list[];
+      int neff;
+   public:
+      SetOfAx()
+      {
+         neff = 0;
+         ArrayResize(list,0);
+      }
+      
+      bool ArraySearch(pairOfAx &p)
+      {
+         if (neff > 0)
+         {
+            bool found = false;
+            int i = 0;
+            while (!found && i < neff)
+            {
+               if (list[i] == p)
+               {
+                  found = true;
+               }
+               i++;
+            }
+            return found;
+         }
+         else
+         {
+            return false;
+         }
+      }
+      
+      void addEl(pairOfAx &p)
+      {
+         if (!ArraySearch(p))
+         {
+            neff++;
+            ArrayResize(list, neff);
+            list[neff-1] = p;
+         }
+      }
+      
+      int getNeff()
+      {
+         return neff;
+      }
+      pairOfAx getElmt(int idx)
+      {
+         return list[idx];
+      }      
+};
+
+static SetOfAx Solns();
 
 double getDistAx(axes &a, axes &b, axes &c)
 {
@@ -119,12 +218,12 @@ void convhull(axes &a, axes &b, axes &list[], int direction)
 {
    //draw line between 2 farthest points
    //drawTrendline(a,b);
-   Alert(a.getX());
-   Alert(b.getX());
    axes uplist[];
    axes downlist[];
    if (ArraySize(list) == 0)
    {
+      pairOfAx temp(a,b);
+      Solns.addEl(temp);
       return;
    }
    else
@@ -138,13 +237,14 @@ void convhull(axes &a, axes &b, axes &list[], int direction)
       {
          if (!isOnSmex(a,list[i]))
          {
-            if (getGradient(a,list[i]) > curGrad)
+            if ((getGradient(a,list[i]) > curGrad) && !a.isNotDefined() && !list[i].isNotDefined())
             {
+               Alert("in");
                ArrayResize(uplist, upC+1);
                uplist[upC] = list[i];
                upC++;
             }
-            else if (getGradient(a,list[i]) < curGrad)
+            else if ((getGradient(a,list[i]) < curGrad) && !a.isNotDefined() && !list[i].isNotDefined())
             {
                ArrayResize(downlist, doC+1);
                downlist[doC] = list[i];
@@ -244,7 +344,45 @@ void OnTick()
       listofaxh[i] = temp;
       listofaxl[i] = temp1;
    }
-   convhull(listofaxh[0], listofaxh[ArraySize(listofaxh)-1], listofaxh, 0);
+   //convhull(listofaxh[0], listofaxh[ArraySize(listofaxh)-1], listofaxh, 0);
    convhull(listofaxl[0], listofaxl[ArraySize(listofaxl)-1], listofaxl, 0);
+   int neff = Solns.getNeff();
+   for (int i = 0; i < neff; i++)
+   {
+      Alert(Solns.getElmt(i).getA().getX() + "-" + Solns.getElmt(i).getA().getY() +" " +Solns.getElmt(i).getB().getX()+"-" +Solns.getElmt(i).getB().getY());
+   }
+      Alert("finish loop");
   }
 //+------------------------------------------------------------------+
+/*Scraps:
+
+      void swap(axes &a, axes& b)
+      {
+         axes temp = a;
+         a = b;
+         b = temp;
+      }
+      
+      void sortByX()
+      {
+         for (int i = 0; i < neff; i++)
+         {
+            int j = i;
+            int min = list[j].getX();
+            int idx = j;
+            for (j = i; j < neff; j++)
+            {
+               if (list[j].getX() < min)
+               {
+                  idx = j;
+                  min = list[j].getX();
+               }
+            }
+            //swap(list[idx], list[i]);
+            axes temp = list[idx];
+            list[idx] = list[i];
+            list[i] = temp;
+            
+         }
+      }
+      */
