@@ -145,6 +145,12 @@ class SetOfAx
 
 static SetOfAx Solns();
 
+//Debug function
+void sendHelp(axes &a)
+{
+   Alert(a.getX() + " HELP " + a.getY());
+}
+
 double getDistAx(axes &a, axes &b, axes &c)
 {
    return (0.5)*MathAbs((a.getX()-c.getX())*(b.getY()-a.getY())-(a.getX()-b.getX())*(c.getY()-a.getY()));
@@ -192,9 +198,10 @@ axes findFarthestPoint(axes &a, axes &b, axes &list[])
    return list[crucial];
 }
 
-void drawTrendline(axes &a, axes &b)
+void drawTrendline(axes &a, axes &b, int idx)
 {
-   if (ObjectCreate(0, _Symbol, OBJ_TREND, 0, a.getDT(), a.getY(), b.getDT(), b.getY()))
+   string name = "obj_no."+idx;
+   if (ObjectCreate(0, name, OBJ_TREND, 0, a.getDT(), a.getY(), b.getDT(), b.getY()))
    {
       Alert("Drawn line");  
    }
@@ -239,7 +246,6 @@ void convhull(axes &a, axes &b, axes &list[], int direction)
          {
             if ((getGradient(a,list[i]) > curGrad) && !a.isNotDefined() && !list[i].isNotDefined())
             {
-               Alert("in");
                ArrayResize(uplist, upC+1);
                uplist[upC] = list[i];
                upC++;
@@ -282,6 +288,12 @@ void convhull(axes &a, axes &b, axes &list[], int direction)
       else if (flagdown && !flagup)
       {
          direction = 2;
+      }
+      else
+      {
+         pairOfAx temp(a,b);
+         Solns.addEl(temp);
+         return;
       }
    
    //connect ends with farthest points
@@ -345,11 +357,13 @@ void OnTick()
       listofaxl[i] = temp1;
    }
    //convhull(listofaxh[0], listofaxh[ArraySize(listofaxh)-1], listofaxh, 0);
-   convhull(listofaxl[0], listofaxl[ArraySize(listofaxl)-1], listofaxl, 0);
+   convhull(listofaxh[0], listofaxh[ArraySize(listofaxh)-1], listofaxh, 0);
+   
    int neff = Solns.getNeff();
+   
    for (int i = 0; i < neff; i++)
    {
-      Alert(Solns.getElmt(i).getA().getX() + "-" + Solns.getElmt(i).getA().getY() +" " +Solns.getElmt(i).getB().getX()+"-" +Solns.getElmt(i).getB().getY());
+      drawTrendline(Solns.getElmt(i).getA(), Solns.getElmt(i).getB(),i);
    }
       Alert("finish loop");
   }
