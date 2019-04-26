@@ -143,7 +143,6 @@ class SetOfAx
       }      
 };
 
-static SetOfAx Solns();
 
 //Debug function
 void sendHelp(axes &a)
@@ -335,11 +334,19 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 //| Expert tick function                                             |
 //+------------------------------------------------------------------+
+static SetOfAx Solns();
+static int count = 0;
+//Main loop
 void OnTick()
   {
 //---
    if (!isNewBar())
    {
+      return;
+   }
+   if (count % 50 != 0)
+   {
+      count++;
       return;
    }
    MqlRates rates[];
@@ -356,7 +363,7 @@ void OnTick()
       listofaxh[i] = temp;
       listofaxl[i] = temp1;
    }
-   //convhull(listofaxh[0], listofaxh[ArraySize(listofaxh)-1], listofaxh, 0);
+   convhull(listofaxl[0], listofaxl[ArraySize(listofaxl)-1], listofaxl, 0);
    convhull(listofaxh[0], listofaxh[ArraySize(listofaxh)-1], listofaxh, 0);
    
    int neff = Solns.getNeff();
@@ -366,6 +373,7 @@ void OnTick()
       drawTrendline(Solns.getElmt(i).getA(), Solns.getElmt(i).getB(),i);
    }
       Alert("finish loop");
+   count++;
   }
 //+------------------------------------------------------------------+
 /*Scraps:
