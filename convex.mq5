@@ -6,11 +6,19 @@
 #property copyright "Copyright 2018, MetaQuotes Software Corp."
 #property link      "https://www.mql5.com"
 #property version   "1.00"
+
+/**
+ * @file convex.mq5
+ * @author Muhammad Al Terra
+ * @date 2019-04-24
+ */
+ 
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
 class point
 {
+   //class point untuk diturunkan menjadi axes
    private:
       int x;
       double y;
@@ -28,6 +36,7 @@ class point
 
 class axes : public point
 {
+   //class axes untuk menyimpan data yang dibutuhkan saat menggambar
    private:
       datetime dtx;
    public:
@@ -56,6 +65,7 @@ class axes : public point
 };
 class pairOfAx
 {
+   //class pair of axes untuk mempermudah proses penggambaran
    private:
       axes a;
       axes b;
@@ -91,6 +101,7 @@ class pairOfAx
 
 class SetOfAx
 {
+   //set pairs of axes untuk diiterasikan untuk digambar satu per satu
    private:
       pairOfAx list[];
       int neff;
@@ -152,10 +163,12 @@ void sendHelp(axes &a)
 
 double getDistAx(axes &a, axes &b, axes &c)
 {
+   //mencari jarak suatu titik jika dibanding kan dari sebuah garis dengan titik a,b
    return (0.5)*MathAbs((a.getX()-c.getX())*(b.getY()-a.getY())-(a.getX()-b.getX())*(c.getY()-a.getY()));
 }
 bool isNewBar()
 //Credit: Konstantin Gruzdev
+//mengecek apakah bar baru telah terbuat
   {
 //--- memorize the time of opening of the last bar in the static variable
    static datetime last_time=0;
@@ -183,6 +196,7 @@ bool isNewBar()
 
 axes findFarthestPoint(axes &a, axes &b, axes &list[])
 {
+   //mencari tittk terjauh dari sekumpulan titk yang jaraknya dihitung dari sebuah garis dari a dan b
    int len = ArraySize(list);
    double max = getDistAx(a,b,list[0]);
    int crucial = 0;
@@ -199,6 +213,7 @@ axes findFarthestPoint(axes &a, axes &b, axes &list[])
 
 void drawTrendline(axes &a, axes &b, int idx)
 {
+   //fungsi penggambaran trendline untuk mempermudah proses
    string name = "obj_no."+idx;
    if (ObjectCreate(0, name, OBJ_TREND, 0, a.getDT(), a.getY(), b.getDT(), b.getY()))
    {
@@ -212,22 +227,27 @@ void drawTrendline(axes &a, axes &b, int idx)
 
 double getGradient(axes &a, axes &b)
 {
+   //fungsi untuk mencari gradien suatu garis
    return (b.getY()-a.getY())/(b.getX()-a.getX());
 }
 
 bool isOnSmex(axes &a, axes &b)
 {
+   //fungsi untuk melihat apakah x nya sama sehingga gradien 0
    return a.getX() == b.getX();
 }
 
 void convhull(axes &a, axes &b, axes &list[], int direction)
 {
+   //main algo
    //draw line between 2 farthest points
    //drawTrendline(a,b);
    axes uplist[];
    axes downlist[];
    if (ArraySize(list) == 0)
    {
+      //basis
+      //conquer
       pairOfAx temp(a,b);
       Solns.addEl(temp);
       return;
@@ -239,6 +259,8 @@ void convhull(axes &a, axes &b, axes &list[], int direction)
       int len = ArraySize(list);
       int upC = 0;
       int doC = 0;
+      
+      //proses divide
       for (int i = 0; i < len; i++)
       {
          if (!isOnSmex(a,list[i]))
@@ -264,6 +286,7 @@ void convhull(axes &a, axes &b, axes &list[], int direction)
       bool flagdown = false;
       axes farthdown;
       axes farthup;
+      
       if (ArraySize(downlist) != 0)
       {
          farthdown = findFarthestPoint(a,b,downlist);
@@ -290,6 +313,8 @@ void convhull(axes &a, axes &b, axes &list[], int direction)
       }
       else
       {
+         //basis juga
+         //conquer
          pairOfAx temp(a,b);
          Solns.addEl(temp);
          return;
@@ -297,6 +322,7 @@ void convhull(axes &a, axes &b, axes &list[], int direction)
    
    //connect ends with farthest points
    //recurse
+   //rekursif tergantung dari downlist dan uplist, jika tidak ada titik yang di atas maka direction = 2 jika tidak ada titk yang di bawah maka direction = 1
       if (direction == 0)
       {
          convhull(a, farthup, uplist, 1);
@@ -370,6 +396,7 @@ void OnTick()
    
    for (int i = 0; i < neff; i++)
    {
+      //draw all lines
       drawTrendline(Solns.getElmt(i).getA(), Solns.getElmt(i).getB(),i);
    }
       Alert("finish loop");
